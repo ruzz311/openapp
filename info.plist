@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.madsendev.openapp</string>
+	<key>category</key>
+	<string>Tools</string>
+	<key>connections</key>
+	<dict>
+		<key>783193FF-5157-433A-BF2A-FD187439327B</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>16039760-F173-4AB8-9C73-DA7401D5DE23</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>@RussellMadsen</string>
+	<key>description</key>
+	<string>Open an application that can access the user logged in user's envionment / paths.</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Open App</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>argumenttype</key>
+				<integer>0</integer>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>keyword</key>
+				<string>openapp</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>1</integer>
+				<key>queuemode</key>
+				<integer>2</integer>
+				<key>runningsubtext</key>
+				<string>Finding Apps...</string>
+				<key>script</key>
+				<string>RESOURCES="/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources"
+
+function createXMLItem {
+    # APPNAME="$(tr -d '.app' &lt;&lt;&lt; "$1")"
+    APPNAME="$(sed -e 's/\.app$//' &lt;&lt;&lt; "$1")"
+    APP_PATH="/Applications/$APPNAME"
+    ICON_PATH="$(getIconPath "$1")"
+    ITEMARG="$(getItemArg "$1")"
+
+    TITLE="&lt;title&gt;$APPNAME&lt;/title&gt;"
+    SUBTITLE="&lt;subtitle&gt;$APP_PATH&lt;/subtitle&gt;"
+    ICON="&lt;icon&gt;$ICON_PATH&lt;/icon&gt;"
+    echo "&lt;item uid=\"$APPNAME\" arg=\"$ITEMARG\"&gt;$TITLE$SUBTITLE$ICON&lt;/item&gt;"
+}
+
+function getItemArg {
+    APPNAME="$1"
+    EXECUTEABLE=`defaults read "/Applications/$APPNAME/Contents/Info" CFBundleExecutable`
+    echo "/Applications/$APPNAME/Contents/MacOS/$EXECUTEABLE"
+}
+
+function getIconPath {
+    APPNAME="$1"
+    ICON_NAME=`defaults read "/Applications/$APPNAME/Contents/Info" CFBundleIconFile|sed -e 's/\.icns$//'`
+    ICON_PATH="/Applications/$APPNAME/Contents/Resources/$ICON_NAME.icns"
+    if [[ -e "ICON_PATH" ]]; then
+        ICON_PATH="$RESOURCES/ApplicationsFolderIcon.icns"
+    fi
+    echo "$ICON_PATH"
+}
+
+# TODO: remove if not needed
+function escapeSpaces {
+    echo "$(printf "%q\n" "$1")"
+}
+
+ITEMS=""
+# find apps
+while read -r line ; do
+    item=$(createXMLItem "$line")
+    ITEMS+="${item}"
+    #echo "ItemCreated! $item"
+done &lt;&lt;&lt; "$(ls /Applications | grep -i "{query}")"
+RESULT=$(echo "&lt;?xml version=\"1.0\"?&gt;&lt;items&gt;$ITEMS&lt;/items&gt;")
+
+cat &lt;&lt;&lt; "$RESULT"
+</string>
+				<key>scriptargtype</key>
+				<integer>0</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Open an application via shell inorder to share enviornment / path</string>
+				<key>title</key>
+				<string>Open Application...</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>783193FF-5157-433A-BF2A-FD187439327B</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>103</integer>
+				<key>script</key>
+				<string>nohup /bin/zsh -l -c "{query}" &amp;</string>
+				<key>scriptargtype</key>
+				<integer>0</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>5</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>16039760-F173-4AB8-9C73-DA7401D5DE23</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string>This script uses zsh because it’s my preferred shell, but the open app workflow will launch an application from shell in order to share environment variables and paths.
+
+
+The script filter will auto suggest apps based on your installed apps. After choosing an app, a simple one line is used to launch the app in the background without a terminal window:
+
+```
+nohup /bin/zsh -l -c "{query}" &amp;
+```</string>
+	<key>uidata</key>
+	<dict>
+		<key>16039760-F173-4AB8-9C73-DA7401D5DE23</key>
+		<dict>
+			<key>xpos</key>
+			<integer>500</integer>
+			<key>ypos</key>
+			<real>80</real>
+		</dict>
+		<key>783193FF-5157-433A-BF2A-FD187439327B</key>
+		<dict>
+			<key>xpos</key>
+			<integer>300</integer>
+			<key>ypos</key>
+			<real>80</real>
+		</dict>
+	</dict>
+	<key>version</key>
+	<string>1.1</string>
+	<key>webaddress</key>
+	<string>http://madsendev.com</string>
+</dict>
+</plist>
